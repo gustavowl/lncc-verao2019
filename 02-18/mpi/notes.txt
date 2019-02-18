@@ -1,0 +1,54 @@
+https://bit.Ly/2N7bQ9O
+	- slides
+	- testes
+
+Projeto arm. Contexto geopolítico. USA vs China.
+	- arm seria a versão independente na europa
+	- Objetivo do LNCC é ficar competitivo a nível internacional em software, não arquitetura
+	- LNCC tem 18k cores
+
+
+Slide
+- MPI é um padrão, feito na década de 90
+- Consórcio MPI fórum
+- ainda mantém as características de portável, eficiente e flexível
+- Hj a gente trabalha com o padrão 3 e o fórum com o 4
+- Documentação etc, olha no fórum
+- A versão 4 tem retrocompatibilidade
+- A versão 3 tem mais de 400 rotinas; mas 20 são as mais básicas e "suficientes"
+- Rotinas podem ser encontradas em http://www.mpich.org/static/docs/latest/
+- As implementações são opensource
+- Versão mais popular: mpich
+- Cada fabricante tem sua versão do MPI
+	- Melhor desempenho para determinada arquitetura
+- OpenMP é para memória compartilhada
+- MPI é para o padrão de memória distribuída (apesar de rodar em vários ambientes possíveis)
+- A maioria das rotinas é para troca de mensagens
+- O programa MPI é uma biblioteca
+	- Obviamente, necessário incluí-la
+	- #include mpi.h
+	- start mpi
+	- use mpi
+	- close mpi
+- Feito para C, C++ e Fortran(?). Que são as linguagens científicas
+- Send & rcv são buffers locais
+- Fundamental uso de parâmetros padronizados. e.g. MPI_CHAR, já que cada máquina tem um tamanho específico
+- Programas MPI são gerenciados à partir dos rankings, e.g. slide 29
+- Problema de MPI é a facilidade com que deadlocks podem ocorrer. Daí a necessidade das 400 rotinas
+- Teste 02: rodar com 2 cores ou com mais (ver lixo como saída quando 2+ cores)
+- Troque linhas 26 e 27 e o código ainda funciona localmente pq a verificação blablabla
+- Ao invés disso, se linhas 19 e 20 forem trocadas, classic deadlock
+- Send rcv não bloqueante...
+- Teste 02: linhas 20 e 21 preparam o buffer
+- waitall (linha 27) espera tds os sends e rcvs preparados
+- o waitall é bloqueante, rotina de segurança apenas
+- O protocolo dentro de uma cluster é leve (slide 36). Não é necessário empacotar em TCP/IP
+- Estranhamente, o objetivo do MPI é não comunicar. Ou fazer a menor quantidade de comunicações possíveis
+- end(programar mpi)
+- begin(programar mpi p/ 8456878656423 cores)
+- mpicc.mpich teste04.c -o teste04
+- mpirun.mpich -np 4 ./teste04
+- curso de MPI/IO é essencial para clusters (leitura de dados em paralelo)
+	- Nem todas as rotinas leem os dados por conta do gargalo de HD
+- NUNCA COLOQUE PRINTF NO PROGRAMA MPI FOR BOTTLENECK REASONS
+- teste11.c:25, periods = torus
