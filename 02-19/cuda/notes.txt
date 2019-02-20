@@ -1,0 +1,62 @@
+slides: tinyurl.com/y2cljwrg
+
+Livros (slide 13/374)
+	- mais fundamental é o Programming Massively Parallel Processors: A Hands-on Approach
+	- mais recomendado para iniciantes CUDA by Example: An Introduction to General-Purpose GPU Programming
+
+Slides 22 e 23/374
+	- GeForce foi feita para uso contínuo (24/7)
+	- Tesla foi feita para uso mais intenso
+
+after ssh in sdumont
+[aluno1338@sdumont13 codigos]$ squeue
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+            265281 nvidia_de    TEST1 andrercs CG      20:16      1 sdumont3133
+            265263 nvidia_de matrixMu roberto. CG       0:08      1 sdumont3132
+            265262 nvidia_de matrixMu roberto. CG       0:07      1 sdumont3131
+            265261 nvidia_de matrixMu roberto. CG       0:00      1 sdumont3130
+            265260 nvidia_de matrixMu roberto. CG       0:07      1 sdumont3129
+            265259 nvidia_de deviceQu roberto. CG       0:06      1 sdumont3128
+            265264 treinamen nvidia-s professo CG       0:07      1 sdumont3001
+            265286    mesca2    TEST1 andrercs PD       0:00      1 (Resources)
+            265287    mesca2    sleep andrercs PD       0:00      1 (Resources)
+
+Filas de execução
+[aluno1338@sdumont13 codigos]$ sinfo -s
+PARTITION       AVAIL  TIMELIMIT   NODES(A/I/O/T)  NODELIST
+cpu*               up   infinite     6/541/39/586  sdumont[1000-1503,3110-3159,5012-5043]
+nvidia             up   infinite      6/181/5/192  sdumont[3006-3197]
+phi                up   infinite        0/32/0/32  sdumont[5012-5043]
+mesca2             up   infinite          0/1/0/1  sdumont57
+cpu_small          up   infinite     6/541/39/586  sdumont[1000-1503,3110-3159,5012-5043]
+nvidia_small       up   infinite      6/185/5/196  sdumont[3002-3197]
+cpu_dev            up   infinite     0/477/37/514  sdumont[1000-1503,5044-5053]
+nvidia_dev         up   infinite      6/185/5/196  sdumont[3002-3197]
+phi_dev            up   infinite        0/32/0/32  sdumont[5012-5043]
+cpu_scal           up   infinite     6/541/39/586  sdumont[1000-1503,3110-3159,5012-5043]
+cpu_long           up   infinite     0/499/37/536  sdumont[1000-1503,5012-5043]
+nvidia_scal        up   infinite      6/181/5/192  sdumont[3006-3197]
+nvidia_long        up   infinite      6/181/5/192  sdumont[3006-3197]
+all             inact 2-00:00:00     7/706/43/756  sdumont[1000-1503,3000-3197,5000-5053]
+treinamento        up   infinite        0/10/0/10  sdumont[5000-5009]
+treinamento_gpu    up   infinite         1/9/1/11  sdumont[3000-3010]
+
+- nós de login não tem GPU, só CPU.
+
+[aluno1338@sdumont13 codigos]$ cat aliassdumont.sh 
+#!/bin/bash
+
+#alias nvcc='srun -p treinamento_gpu --time=00:01:00 -N1 -n1 nvcc'
+alias nvprof='srun -p treinamento_gpu --time=00:01:00 -N1 -n1 nvprof'
+alias fila='srun -p treinamento_gpu --time=00:01:00 -N1 -n1'
+
+Alter CUDA path
+srun -p treinamento_gpu ./deviceQuery
+
+## VERY IMPORTANT ##
+Daqui pra frente, sempre q for submeter um job, tem q ser dessa maneira:
+$ fila ./devicequery
+NÃO USAR MAIS SRUN
+
+Slide 58/374
+- Entender bem Hierarquia, organização e indetificação, atribuição, e escalonamento significa entener bem cuda. Entender hierarquia de memória é otimização.
