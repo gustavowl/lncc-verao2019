@@ -1,0 +1,148 @@
+https://github.com/msserpa/ufrgs-intel-modern-code
+slides: http://inf.ufrgs.br/gppd/intel-modern-code/pt/ (curso 28)
+email do cabra: msserpa@inf.ufrgs.br
+
+ssh alunoXXXX@146.134.143.243
+cd $SCRATCH
+
+cp /scratch/treinamento/professor2/ufrgs-intel-moden-code.tar .
+tar xvf ufrgs-intel-moden-code.tar
+source /scratch/app/modulos/intel-psxe-2017.sh
+icc -v
+
+srun -p treinamento -c 24 ./helloWorld.exec
+
+==== changing hello world for parallel running ====
+#include <stdio.h>
+#include <omp.h>
+
+int main(){
+	int myid, nthreads;
+
+	#pragma omp parallel private(myid)
+	{ //curly bracket NEEDS to be below pragma omp parallel
+		myid = omp_get_thread_num(); //private for each thread
+		nthreads = omp_get_num_threads(); //common variable for all threads
+		//optional: shared(nthreads)
+
+		printf("%d of %d - hello world!\n", myid, nthreads);
+	}
+
+	return 0;
+}
+=====  =====
+
+
+===== changing vectorSum.c =====
+long long int sum(int *v, long long int N){
+	long long int nthreads = omp_get_num_threads(), auxsum = 0;
+	#pragma omp parallel
+	{
+		long long int i, myid = omp_get_thread_num();
+
+			for(i = myid; i < N; i+= nthreads)
+				auxsum += v[i]; //RACE CONDITION
+	}
+	return auxsum;
+}
+=====  =====
+
+#pragma omp atomic
+abrange um subset (limitado) de exclusões mútuas implementadas em máquina
+
+===== changing vectorSum.c =====
+long long int sum(int *v, long long int N){
+	long long int nthreads = 0, sum = 0;
+	#pragma omp parallel
+	{
+	#pragma omp single
+	nthreads = omp_get_num_threads();
+
+		long long int i, myid = omp_get_thread_num(), auxsum = 0;
+
+			for(i = myid; i < N; i+= nthreads)
+				auxsum += v[i];
+		
+		#pragma omp atomic
+		sum += auxsum;
+	}
+	printf("sum: %lld\n", sum);
+	return sum;
+}
+=====  =====
+
+===== changing vectorSum.c using locality principle =====
+long long int sum(int *v, long long int N){
+	long long int nthreads = 0, sum = 0;
+	#pragma omp parallel
+	{
+	#pragma omp single
+	nthreads = omp_get_num_threads();
+
+		long long int i, myid = omp_get_thread_num(), auxsum = 0,
+			block_size = N / nthreads, end = (myid + 1) * block_size;
+
+			if (myid == nthreads - 1)
+				end = N;
+			for(i = myid * block_size; i < end ; i++)
+				auxsum += v[i];
+		
+		#pragma omp atomic
+		sum += auxsum;
+	}
+	printf("sum: %lld\n", sum);
+	return sum;
+}
+=====  =====
+
+===== code refactoring =====
+long long int sum(int *v, long long int N){
+	long long int nthreads = 0, sum = 0, i;
+
+	#pragma omp parallel for reduction(+ : sum)
+	for (i = 0; i < N; i++)
+		sum += v[i];
+
+	return sum;
+=====  =====
+
+===== dotProduct.c =====
+double dotproduct(double *a, double *b, long long int N){
+	long long int i;
+	double dot = 0;
+	
+	#pragma simd reduction(+ : dot)
+	for(i = 0; i < N; i++)
+		dot += a[i] * b[i];
+	return dot;
+}
+=====  =====
+
+===== matrixMultiplication.c =====
+void matrix_mult(double *A, double *B, double *C, int N){
+	int i, j, k;
+
+	#pragma omp parallel for simd
+	for(i = 0; i < N; i++)
+		for(k = 0; k < N; k++)
+			for(j = 0; j < N; j++)
+				C[i * N + j] += A[i * N + k] * B[k * N + j];
+}
+=====  =====
+
+O mais "correto" é fazer o seguinte:
+=====  =====
+void matrix_mult(double *A, double *B, double *C, int N){
+	int i, j, k;
+
+	#pragma omp parallel for
+	for(i = 0; i < N; i++)
+		for(k = 0; k < N; k++)
+			#pragma simd
+			for(j = 0; j < N; j++)
+				C[i * N + j] += A[i * N + k] * B[k * N + j];
+}
+=====  =====
+Normalmente, o pragma for deixa-se no mais externo,
+enquanto o simd precisa ser no mais interno.
+Dependendo do compilador (icc dá certo, gcc não entenderia)
